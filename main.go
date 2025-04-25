@@ -228,7 +228,7 @@ type User struct {
 	Email         string `json:"email"`
 	Age           int    `json:"age"`
 	OthersRefered []User `json:"othersRefered" one-to-many:"refered_by"`
-	WorksFor      []User `json:"worksFor" many-to-many:"boss-Workers"`
+	WorksFor      []User `json:"worksFor" many-to-many:"boss-workers"`
 	Workers       []User `json:"workers" many-to-many:"worker-worksFor"`
 }
 
@@ -341,19 +341,31 @@ func recursive_create(obj interface{}, extras map[string]interface{}) int {
 			}
 		} else if field.Tag.Get("many-to-many") != "" {
 			// Extract slice
-			type_in_list = ...
-			slice := val.Field(j)
-			// Each element must be addressable or a struct
-			for k := 0; k < slice.Len(); k++ {
-				child := slice.Index(k).Interface()
-				// Pass refered_by to child
-				extra := map[string]interface{}{field.Tag.Get("many-to-many"): id}
-				recursive_create(child, extra)
-			}
+			type_in_list := field.Type.Elem()
+			this_structFields_relationship_status := field.Tag.Get("many-to-many")
+			related_structFields_relationship_status := find_by_json_tag(type_in_list, strings.Split(this_structFields_relationship_status, "-")[1]).Tag.Get(("many-to-many"))
+			join_table_name := strings.Split(this_structFields_relationship_status, "-")[0] + "_" + strings.Split(related_structFields_relationship_status, "-")[0]
+			fmt.Println("json tag:", field.Tag.Get("json"))
+			fmt.Println("type in list:", type_in_list.String())
+			fmt.Println("many-to-many relationship status:", related_structFields_relationship_status)
+			fmt.Println("join table name:", join_table_name)
 		}
 	}
 
 	return id
+}
+
+func find_by_json_tag(type_ reflect.Type, json_tag string) reflect.StructField {
+	fmt.Printf("json tag: %s %s\n", json_tag, type_)
+	// Iterate over fields of the given type
+	for i := 0; i < type_.NumField(); i++ {
+		field := type_.Field(i)
+		if field.Tag.Get("json") == json_tag {
+			return field
+		}
+	}
+	panic("field not found")
+
 }
 
 func main() {
