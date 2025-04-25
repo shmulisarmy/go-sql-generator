@@ -357,7 +357,6 @@ func recursive_create(obj interface{}, extras map[string]interface{}) int {
 
 func find_by_json_tag(type_ reflect.Type, json_tag string) reflect.StructField {
 	fmt.Printf("json tag: %s %s\n", json_tag, type_)
-	// Iterate over fields of the given type
 	for i := 0; i < type_.NumField(); i++ {
 		field := type_.Field(i)
 		if field.Tag.Get("json") == json_tag {
